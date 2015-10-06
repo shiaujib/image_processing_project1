@@ -1,6 +1,7 @@
 #include<opencv2/core/core.hpp>
 #include<opencv2/highgui/highgui.hpp>
 #include<iostream>
+#include<math.h>
 using namespace std;
 using namespace cv;
 
@@ -26,8 +27,6 @@ void nearest_neighbor(double ratio)
 		for(int j=0;j<matDst.rows;j++)
 		{
 			
-		//	srcx=min(cvRound(i*x_ratio),matDst.cols-1);
-		//	srcy=min(cvRound(j*y_ratio),matDst.rows-1);
 			srcx=cvRound(i*x_ratio);
 			srcy=cvRound(j*y_ratio);
 			matDst.at<int>(j,i)=matSrc.at<int>(srcy,srcx);
@@ -37,6 +36,27 @@ void nearest_neighbor(double ratio)
 	imshow("Result",matDst);
 	waitKey(0);
 }
+
+void near(double *x,double *y){
+	
+	*x=cvRound(x);
+	*y=cvRound(y);
+
+	}
+
+
+void rotate(double angle){
+	int rx,ry;
+	double x_ratio,y_ratio;
+	Mat matSrc,matDst,matOut;
+	matSrc=imread("test.tif",1);
+	imshow("input",matSrc);
+	for(int i=0;i<matSrc.rows;i++)
+		for(int j=0;j<matSrc.cols;j++){
+			rx=j*cos(angle)-sin(angle)*i;
+			ry=j*sin(angle)+cos(angle)*i;
+			}
+				
 	
 		
 		
