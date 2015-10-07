@@ -7,9 +7,27 @@ using namespace cv;
 
 
 
+
+int near(double *x,double *y){   //find the nearest point
+	int result;
+	*x=cvRound(*x);
+	*y=cvRound(*y);
+        //result=cvRound(x);
+	return result;
+        }
+double min(double x,double y){
+	if(x>=y)
+		return y;
+	else
+		return x;
+}
+
+
+
 void nearest_neighbor(double ratio)
 {	
 	int srcx,srcy;
+	double sdx,sdy;
 	double x_ratio,y_ratio;
 	Mat matSrc,matDst,matOut;
 	matSrc=imread("test.tif",1);
@@ -27,9 +45,14 @@ void nearest_neighbor(double ratio)
 		for(int j=0;j<matDst.rows;j++)
 		{
 			
-			srcx=cvRound(i*x_ratio);
-			srcy=cvRound(j*y_ratio);
-			matDst.at<int>(j,i)=matSrc.at<int>(srcy,srcx);
+			sdx=i*x_ratio;
+			sdy=j*y_ratio;
+			near(&sdx,&sdy);
+			cout<<sdx<<" \t"<<sdy<<endl;
+		//	srcx=near(sdx);
+		//	srcy=near(sdy);
+	//		matDst.at<int>(j,i)=matSrc.at<int>(srcy,srcx);
+			matDst.at<int>(j,i)=matSrc.at<int>(sdy,sdx);
 		}
 	}
 //	imwrite("output.tif",matDst);
@@ -37,28 +60,28 @@ void nearest_neighbor(double ratio)
 	waitKey(0);
 }
 
-void near(double *x,double *y){
-	
-	*x=cvRound(*x);
-	*y=cvRound(*y);
-
-	}
 
 
 void rotate(double angle){
 	double rx,ry;
 	double x_ratio,y_ratio;
 	Mat matSrc,matDst,matOut;
+	angle=angle*3.1415/180;
 	matSrc=imread("test.tif",1);
+	matDst=Mat(matSrc.size(),matSrc.type());
 	imshow("input",matSrc);
-	for(int i=0;i<matSrc.rows;i++)
-		for(int j=0;j<matSrc.cols;j++){
-			rx=j*cos(angle)-sin(angle)*i;
-			ry=j*sin(angle)+cos(angle)*i;
+	waitKey(0);
+	for(int i=0;i<matSrc.cols;i++)
+		for(int j=0;j<matSrc.rows;j++){
+			rx=i*cos(angle)-sin(angle)*j;
+			ry=i*sin(angle)+cos(angle)*j;
+			rx=min(rx,matSrc.cols-1);
+			ry=min(ry,matSrc.rows-1);
 			near(&rx,&ry);
 			matDst.at<int>(j,i)=matSrc.at<int>(ry,rx);
 			}
-				
+	imshow("Result",matDst);
+	waitKey(0);			
 	
 		
 		
@@ -71,7 +94,8 @@ int main(){
 	cout<<"input the scaling ratio:"<<endl;
 //	cin>>y>>x;
 	cin>>x;
-	nearest_neighbor(x);
+//	nearest_neighbor(x);
+	rotate(x);
 	return 0;	
 
 
