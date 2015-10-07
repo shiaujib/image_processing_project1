@@ -39,14 +39,14 @@ void nearest_neighbor(double ratio)
 
 void near(double *x,double *y){
 	
-	*x=cvRound(x);
-	*y=cvRound(y);
+	*x=cvRound(*x);
+	*y=cvRound(*y);
 
 	}
 
 
 void rotate(double angle){
-	int rx,ry;
+	double rx,ry;
 	double x_ratio,y_ratio;
 	Mat matSrc,matDst,matOut;
 	matSrc=imread("test.tif",1);
@@ -55,12 +55,14 @@ void rotate(double angle){
 		for(int j=0;j<matSrc.cols;j++){
 			rx=j*cos(angle)-sin(angle)*i;
 			ry=j*sin(angle)+cos(angle)*i;
+			near(&rx,&ry);
+			matDst.at<int>(j,i)=matSrc.at<int>(ry,rx);
 			}
 				
 	
 		
 		
-
+}
 	
 
 
