@@ -39,22 +39,14 @@ void nearest_neighbor(double ratio)
 	
 	x_ratio=(double)matSrc.cols/matDst.cols;
 	y_ratio=(double)matSrc.rows/matDst.rows;
-
 	for(int i=0;i<matDst.cols;i++)
-	{
 		for(int j=0;j<matDst.rows;j++)
-		{
-			
-			sdx=i*x_ratio;
-			sdy=j*y_ratio;
-			near(&sdx,&sdy);
-			cout<<sdx<<" \t"<<sdy<<endl;
-		//	srcx=near(sdx);
-		//	srcy=near(sdy);
-	//		matDst.at<int>(j,i)=matSrc.at<int>(srcy,srcx);
-			matDst.at<int>(j,i)=matSrc.at<int>(sdy,sdx);
-		}
-	}
+			{
+				sdx=i*x_ratio;
+				sdy=j*y_ratio;
+				near(&sdx,&sdy);
+				matDst.at<int>(j,i)=matSrc.at<int>(sdy,sdx);
+			}
 //	imwrite("output.tif",matDst);
 	imshow("Result",matDst);
 	waitKey(0);
@@ -66,23 +58,25 @@ void rotate(double angle){
 	double rx,ry;
 	double x_ratio,y_ratio;
 	Mat matSrc,matDst,matOut;
-	angle=angle*3.1415/180;
-	matSrc=imread("test.tif",1);
+	angle=angle*CV_PI/180;
+	matSrc=imread("lena.jpg",1);
 	matDst=Mat(matSrc.size(),matSrc.type());
 	imshow("input",matSrc);
 	waitKey(0);
-	for(int i=0;i<matSrc.cols;i++)
-		for(int j=0;j<matSrc.rows;j++){
-			rx=i*cos(angle)-sin(angle)*j;
-			ry=i*sin(angle)+cos(angle)*j;
-			rx=min(rx,matSrc.cols-1);
-			ry=min(ry,matSrc.rows-1);
+	for(int i=0;i<matDst.cols;i++)
+		for(int j=0;j<matDst.rows;j++){
+			rx=(i-matSrc.cols/2)*cos(angle)-sin(angle)*(j-matSrc.rows/2);
+			ry=(i-matSrc.cols/2)*sin(angle)+cos(angle)*(j-matSrc.rows/2);
+			rx+=matSrc.cols/2;
+			ry+=matSrc.rows/2;
 			near(&rx,&ry);
-			matDst.at<int>(j,i)=matSrc.at<int>(ry,rx);
-			}
+			if(rx>=matDst.cols||ry>=matDst.rows||rx<=0||ry<=0)
+				matDst.at<Vec3b>(j,i)=Vec3b(0,0);
+			else
+				matDst.at<Vec3b>(j,i)=matSrc.at<Vec3b>(ry,rx);
+				}
 	imshow("Result",matDst);
-	waitKey(0);			
-	
+	waitKey(0);
 		
 		
 }
