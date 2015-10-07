@@ -24,7 +24,7 @@ double min(double x,double y){
 
 
 
-void nearest_neighbor(double ratio)
+void scale(double ratio)
 {	
 	int srcx,srcy;
 	double sdx,sdy;
@@ -80,16 +80,38 @@ void rotate(double angle){
 		
 		
 }
+void traslation(double x,double y){
 	
+	double tx,ty;
+	Mat matSrc,matDst;
+	matSrc=imread("lena.jpg",1);
+	matDst=Mat(matSrc.size(),matSrc.type());
+	imshow("input",matSrc);
+	waitKey(0);
+	for(int i=0;i<matDst.cols;i++)
+		for(int j=0;j<matDst.rows;j++){
+			
+			tx=i-x;
+			ty=j+y;
+			near(&tx,&ty);
+			if(tx>=matDst.cols||ty>=matDst.rows||tx<=0||ty<=0)
+				matDst.at<Vec3b>(j,i)=Vec3b(0,0);
+			else
+				matDst.at<Vec3b>(j,i)=matSrc.at<Vec3b>(ty,tx);
+
+		}
+	imshow("Result",matDst);
+	waitKey(0);
+	}
 
 
 int main(){
 	double x,y;
 	cout<<"input the scaling ratio:"<<endl;
-//	cin>>y>>x;
 	cin>>x;
 //	nearest_neighbor(x);
-	rotate(x);
+//	rotate(x);
+	traslation(x,x);
 	return 0;	
 
 
