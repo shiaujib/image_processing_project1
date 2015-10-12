@@ -22,6 +22,21 @@ double min(double x,double y){
 	else
 		return x;
 }
+void bi(int j,int i ,int fx,int fy){
+	int ix,iy;
+	float t,u;
+        ix=cvRound(fx);
+	t=fx-ix;
+        iy=cvRound(fy);
+        u=fy-iy;
+	for(int k=0;k<matSdst.channels();k++){
+		matSdst.at<Vec3b>(j,i)[k] = matSrc.at<Vec3b>(iy, ix)[k] *(1-t)*(1-u) +  
+		matSrc.at<Vec3b>(iy+1, ix)[k] * (1-t)*u+  
+		matSrc.at<Vec3b>(iy, ix+1)[k] *t*(1-u) +  
+		matSrc.at<Vec3b>(iy+1, ix+1)[k]*t*u; 
+	}
+}
+	
 
 void bilinear(float ratio){
         uchar* dataDst=matSdst.data;
@@ -30,15 +45,16 @@ void bilinear(float ratio){
 	int stepSrc=matDst.step;
 	double fx,fy;
         int ix,iy;
+	float t,u;
         for(int j=0;j<matSdst.rows;j++)
                 for(int i=0;i<matSdst.cols;i++){
 			fx=(i+0.5)*ratio-0.5;
 			fy=(j+0.5)*ratio-0.5;
                         ix=cvRound(fx);
-		        fx-=ix;
+			t=fx-ix;
 		        iy=cvRound(fy);
-			fy-=iy;
-		/*	if(ix<0){
+		        u=fy-iy;
+			if(ix<0){
 				fx=0;
 				ix=0;
 			}
@@ -50,17 +66,15 @@ void bilinear(float ratio){
 			}
 			if(iy>matSdst.rows-1)
 				fx=0,iy=matSdst.rows-2;
-		//	fx=(short)fx;
-		//	fy=(short)fy; */
 			for(int k=0;k<matSdst.channels();k++){
-				*(dataDst+j*stepDst+3*i+k)=(*(dataSrc+iy*stepSrc+3*ix+k)*(1-fx)*(1-fy)+
-				*(dataSrc+(iy+1)*stepSrc+3*ix+k)*(1-fx)*fy+
-				*(dataSrc+iy*stepSrc+3*(ix+1)+k)*fx*(1-fy)+
-				*(dataSrc+(iy+1)*stepSrc+3*(ix+1)+k)*fx*fy);
+				matSdst.at<Vec3b>(j,i)[k] = matSrc.at<Vec3b>(iy, ix)[k] *(1-t)*(1-u) +  
+				matSrc.at<Vec3b>(iy+1, ix)[k] * (1-t)*u+  
+			        matSrc.at<Vec3b>(iy, ix+1)[k] *t*(1-u) +  
+			        matSrc.at<Vec3b>(iy+1, ix+1)[k]*t*u; 
                           }
                     }
-         imshow("bilinear",matSdst);
-	 waitKey(0);
+        imshow("bilinear",matSdst);
+	waitKey(0);
 	  }
 
 
@@ -96,37 +110,13 @@ void scale(double ratio,int algo)
 		bilinear(x_ratio);
 } 
 
-/*void scale_rotate(double ratio,double andle)
-{	
-	int srcx,srcy;
-	double sdx,sdy;
-	double x_ratio,y_ratio;
-	angle=angle*CV_PI/180;
-	matSrc=imread("test.tif",1);
-	imshow("input",matSrc);
-	cout<<"input height*width"<<matSrc.rows<<"*"<<matSrc.cols<<endl;
-	matDst=Mat(Size(matSrc.cols*ratio,matSrc.rows*ratio),matSrc.type());
-	cout<<"onput height*width"<<matDst.rows<<"*"<<matDst.cols<<endl;
-	x_ratio=(double)matSrc.cols/matDst.cols;
-	y_ratio=(double)matSrc.rows/matDst.rows;
-	for(int i=0;i<matDst.cols;i++)
-		for(int j=0;j<matDst.rows;j++)
-			{
-				sdx=(i*x_ratio-matSrc.cols/2);
-				sdy=j*y_ratio;
-				near(&sdx,&sdy);
-				matDst.at<int>(j,i)=matSrc.at<int>(sdy,sdx);
-			}
-	imshow("Result",matDst);
-	waitKey(0);
-}*/
 
 
 void rotate(double angle){
 	double rx,ry;
 	angle=-angle*CV_PI/180;
 	
-	matSrc=imread("test.tif",1);
+	matSrc=imread("lena.jpg",1);
 	matDst=Mat(matSrc.size(),matSrc.type());
 	imshow("input",matSrc);
 	waitKey(0);
@@ -203,7 +193,7 @@ int main(){
 	rotate(0);
 //	scale(10,1);*/
 	rotate(0);
-	scale(1.5,1);
+	scale(1.2,1);
 	traslation_shear(0,0,0.4,1,0);
 
 	return 0;	
