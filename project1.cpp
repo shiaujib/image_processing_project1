@@ -33,19 +33,19 @@ void bilinear(float ratio){
 		fy=(j+0.5)*ratio-0.5;
 		iy=cvRound(fy);
 		u=fy-iy;
-		max(iy,0);
-	        min(iy,matDst.rows);
+	//	max(iy,0);
+	 //       min(iy,matDst.rows-2);
                	for(int i=0;i<matSdst.cols;i++){
 			fx=(i+0.5)*ratio-0.5;
                        	ix=cvRound(fx);
 			t=fx-ix;
-		  	max(ix,0);
-			min(ix,matDst.cols);
+	//	  	max(ix,0);
+	//		min(ix,matDst.cols);
 			for(int k=0;k<matSrc.channels();k++){
-				matSdst.at<Vec3b>(j,i)[k] = matDst.at<Vec3b>(iy,ix)[k] *(1-t)*(1-u) +  
-				matDst.at<Vec3b>(iy+1,ix)[k]*(1-t)*u+  
-			  	matDst.at<Vec3b>(iy,ix+1)[k]*t*(1-u)+  
-			      	matDst.at<Vec3b>(iy+1,ix+1)[k]*t*u; 
+				matSdst.at<Vec3b>(j,i)[k] = matDst.at<Vec3b>(iy,ix)[k] *(1-t)*(1-u) + //z1*(1-t)*(1-u) 
+				matDst.at<Vec3b>(iy+1,ix)[k]*(1-t)*u+  //z2*(1-t)*u
+			  	matDst.at<Vec3b>(iy,ix+1)[k]*t*(1-u)+  //z3*t*(1-u)
+			      	matDst.at<Vec3b>(iy+1,ix+1)[k]*t*u;    //z4*t*u
                         		  }
                 		    }
 			    }
@@ -57,18 +57,21 @@ void bicubic(float ratio){
 	double fx,fy;
 	int ix,iy;
 	float t,u;
-	float A=-0.75f;
-	float coefy[4],coefx[4];
+	float A=0;
+	float Sy[4],Sx[4];
 	for(int j=0;j<matSdst.rows;j++ ){
 		fy=(j+0.5)*ratio-0.5;
-                iy=cvRound(fy);
+                iy=cvFloor(fy);
 		u=fy-iy;
+		cout<<"u= "<<u<<endl;
 		iy=min(iy,matDst.rows-3);
 		iy=max(1,iy);
-		coefy[0]=((A*(u+1)-5*A)*(u+1)+8*A)*(u+1)-4*A;  
-	        coefy[1]=((A+2)*u-(A+3))*u*u+1;  
-	        coefy[2]=((A+2)*(1-u)-(A+3))*(1-u)*(1-u)+1;  
-                coefy[3]=1.f-coefy[0]-coefy[1]-coefy[2];  
+	//	Sy[0]=((A*(u+1)-5*A)*(u+1)+8*A)*(u+1)-4*A; 
+		Sy[0]=4-8*(u+1)+5*(u+1)*(u+1)-abs(u+1)*abs(u+1)*abs(u+1); 
+	       // Sy[1]=1+((A+2)*u-(A+3))*u*u;                //S(u+0)=1+abs(x)^3-2abs(x)^2
+		Sy[1]=1-2*u*u+abs(u)*abs(u)*abs(u);
+	        Sy[2]=1-2*(u-1)*(u-1)+abs(u-1)*abs(u-1)*abs(u-1);  
+                Sy[3]=1-Sy[0]-Sy[1]-Sy[2];  
 
 		for(int i=0;i<matSdst.cols;i++){
 			fx=(i+0.5)*ratio-0.5;
@@ -76,28 +79,29 @@ void bicubic(float ratio){
 			t=fx-ix;
 			ix=min(ix,matDst.cols);
 			ix=max(ix,0);
-			coefx[0] = ((A*(t+1) - 5*A)*(t + 1) + 8*A)*(t + 1) - 4*A;  
-			coefx[1] = ((A + 2)*t - (A + 3))*t*t + 1;  
-		        coefx[2] = ((A + 2)*(1 - t) - (A + 3))*(1 - t)*(1 - t) + 1;  
-		        coefx[3] = 1.f - coefx[0] - coefx[1] - coefx[2]; 
+		//	Sx[0] = ((A*(t+1) - 5*A)*(t + 1) + 8*A)*(t + 1) - 4*A;
+			Sx[0]=4-8*(t+1)+5*(t+1)*(t+1)-(t+1)*(t+1)*(t+1);
+			Sx[1]=1-2*t*t+abs(t)*abs(t)*abs(t);
+	       		Sx[2]=1-2*(t-1)*(t-1)+abs(t-1)*abs(t-1)*abs(t-1);  
+		        Sx[3]=1-Sx[0]-Sx[1]-Sx[2]; 
 			for(int k=0;k<matSdst.channels();k++){
 				matSdst.at<Vec3b>(j,i)[k]=abs((
-				matDst.at<Vec3b>(iy-1, ix-1)[k] * coefx[0] * coefy[0]+
-				matDst.at<Vec3b>(iy, ix-1)[k] * coefx[0] * coefy[1] + 
-				matDst.at<Vec3b>(iy+1, ix-1)[k] *coefx [0] *coefy [2] +
-				matDst.at<Vec3b>(iy+2, ix-1)[k] *coefx [0] *coefy [3] +  
-				matDst.at<Vec3b>(iy-1, ix)[k] *coefx [1] *coefy [0] +
-				matDst.at<Vec3b>(iy, ix)[k] *coefx [1] *coefy [1] +  
-		   	        matDst.at<Vec3b>(iy+1, ix)[k] *coefx [1] *coefy [2] +
-				matDst.at<Vec3b>(iy+2, ix)[k] *coefx [1] *coefy [3] +  
-				matDst.at<Vec3b>(iy-1, ix+1)[k] *coefx [2] *coefy [0] + 
-				matDst.at<Vec3b>(iy, ix+1)[k] *coefx [2] *coefy [1] +  
-				matDst.at<Vec3b>(iy+1, ix+1)[k] *coefx [2] *coefy [2] +
-				matDst.at<Vec3b>(iy+2, ix+1)[k] *coefx [2] *coefy [3] +  
-				matDst.at<Vec3b>(iy-1, ix+2)[k] *coefx [3] *coefy [0] +
-				matDst.at<Vec3b>(iy, ix+2)[k] *coefx [3] *coefy [1] +  
-				matDst.at<Vec3b>(iy+1, ix+2)[k] *coefx [3] *coefy [2] +
-				matDst.at<Vec3b>(iy+2, ix+2)[k] *coefx [3] *coefy [3] ));
+				matDst.at<Vec3b>(iy-1,ix-1)[k]*Sx[0]*Sy[0]+
+				matDst.at<Vec3b>(iy,ix-1)[k]*Sx[0]*Sy[1]+ 
+				matDst.at<Vec3b>(iy+1,ix-1)[k]*Sx[0]*Sy[2]+
+				matDst.at<Vec3b>(iy+2,ix-1)[k]*Sx[0]*Sy[3]+  
+				matDst.at<Vec3b>(iy-1,ix)[k]*Sx[1]*Sy[0]+
+				matDst.at<Vec3b>(iy,ix)[k]*Sx[1]*Sy[1]+  
+		   	        matDst.at<Vec3b>(iy+1,ix)[k]*Sx[1]*Sy[2]+
+				matDst.at<Vec3b>(iy+2,ix)[k]*Sx[1]*Sy[3]+  
+				matDst.at<Vec3b>(iy-1,ix+1)[k]*Sx[2]*Sy[0]+ 
+				matDst.at<Vec3b>(iy,ix+1)[k]*Sx[2]*Sy[1]+  
+				matDst.at<Vec3b>(iy+1,ix+1)[k]*Sx[2]*Sy[2]+
+				matDst.at<Vec3b>(iy+2,ix+1)[k]*Sx[2]*Sy[3]+  
+				matDst.at<Vec3b>(iy-1,ix+2)[k]*Sx[3]*Sy[0]+
+				matDst.at<Vec3b>(iy,ix+2)[k]*Sx[3]*Sy[1]+  
+				matDst.at<Vec3b>(iy+1,ix+2)[k]*Sx[3]*Sy[2]+
+				matDst.at<Vec3b>(iy+2,ix+2)[k]*Sx[3]*Sy[3]));
 				}
 			}
 		}
@@ -135,8 +139,10 @@ void scale(double ratio,int algo)
 		imshow("nearest neighbor scale",matSdst);
 		waitKey(0);
 	}
-	else if(algo==1)
+	else if(algo==1){
 		bilinear(x_ratio);
+		bicubic(x_ratio);
+}
          
 	else if(algo==2)		
 		bicubic(x_ratio);
@@ -289,8 +295,8 @@ int main(){
 	traslation_shear(tranx,trany,shear,type);
 	rotate(0);
 //	scale(10,1);*/
-	rotate(30,1);
-	scale(1.5,2);
+	rotate(30,0);
+	scale(1.5,1);
 	traslation_shear(0,0,0.4,1,0);
 
 	return 0;	
