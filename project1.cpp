@@ -23,24 +23,22 @@ double min(double x,double y){
 }
 	
 
-void bilinear(float ratio){
-       // uchar* dataDst=matSdst.data;
-	//uchar* dataSrc=matDst.data;
+void bilinear(float ratiox,float ratioy){
 	double fx,fy;
         int ix,iy;
 	float t,u;
         for(int j=0;j<matSdst.rows;j++){
-		fy=(j+0.5)*ratio-0.5;
-		iy=cvRound(fy);
+		fy=(j+0.5)*ratioy-0.5;
+		iy=cvFloor(fy);
 		u=fy-iy;
-	//	max(iy,0);
-	 //       min(iy,matDst.rows-2);
+		max(iy,0);
+	        min(iy,matDst.rows-2);
                	for(int i=0;i<matSdst.cols;i++){
-			fx=(i+0.5)*ratio-0.5;
-                       	ix=cvRound(fx);
+			fx=(i+0.5)*ratiox-0.5;
+                       	ix=cvFloor(fx);
 			t=fx-ix;
-	//	  	max(ix,0);
-	//		min(ix,matDst.cols);
+		  	max(ix,0);
+			min(ix,matDst.cols);
 			for(int k=0;k<matSrc.channels();k++){
 				matSdst.at<Vec3b>(j,i)[k] = matDst.at<Vec3b>(iy,ix)[k] *(1-t)*(1-u) + //z1*(1-t)*(1-u) 
 				matDst.at<Vec3b>(iy+1,ix)[k]*(1-t)*u+  //z2*(1-t)*u
@@ -53,33 +51,28 @@ void bilinear(float ratio){
 	waitKey(0);
 	  }
 
-void bicubic(float ratio){
+void bicubic(float ratiox,float ratioy){
 	double fx,fy;
 	int ix,iy;
 	float t,u;
-	float A=0;
 	float Sy[4],Sx[4];
 	for(int j=0;j<matSdst.rows;j++ ){
-		fy=(j+0.5)*ratio-0.5;
+		fy=(j+0.5)*ratioy-0.5;
                 iy=cvFloor(fy);
 		u=fy-iy;
-		cout<<"u= "<<u<<endl;
 		iy=min(iy,matDst.rows-3);
 		iy=max(1,iy);
-	//	Sy[0]=((A*(u+1)-5*A)*(u+1)+8*A)*(u+1)-4*A; 
 		Sy[0]=4-8*(u+1)+5*(u+1)*(u+1)-abs(u+1)*abs(u+1)*abs(u+1); 
-	       // Sy[1]=1+((A+2)*u-(A+3))*u*u;                //S(u+0)=1+abs(x)^3-2abs(x)^2
 		Sy[1]=1-2*u*u+abs(u)*abs(u)*abs(u);
 	        Sy[2]=1-2*(u-1)*(u-1)+abs(u-1)*abs(u-1)*abs(u-1);  
                 Sy[3]=1-Sy[0]-Sy[1]-Sy[2];  
 
 		for(int i=0;i<matSdst.cols;i++){
-			fx=(i+0.5)*ratio-0.5;
-                        ix=cvRound(fx);
+			fx=(i+0.5)*ratiox-0.5;
+                        ix=cvFloor(fx);
 			t=fx-ix;
 			ix=min(ix,matDst.cols);
 			ix=max(ix,0);
-		//	Sx[0] = ((A*(t+1) - 5*A)*(t + 1) + 8*A)*(t + 1) - 4*A;
 			Sx[0]=4-8*(t+1)+5*(t+1)*(t+1)-(t+1)*(t+1)*(t+1);
 			Sx[1]=1-2*t*t+abs(t)*abs(t)*abs(t);
 	       		Sx[2]=1-2*(t-1)*(t-1)+abs(t-1)*abs(t-1)*abs(t-1);  
@@ -111,7 +104,7 @@ void bicubic(float ratio){
 
 
 
-void scale(double ratio,int algo)
+void scale(double ratiox,double ratioy,int algo)
 {	
 	int srcx,srcy;
 	double sdx,sdy;
@@ -122,7 +115,7 @@ void scale(double ratio,int algo)
 //	imshow("input",matSrc);
 //	waitKey(0);
 //	cout<<"input height*width"<<matSrc.rows<<"*"<<matSrc.cols<<endl;
-	matSdst=Mat(Size(matSrc.cols*ratio,matSrc.rows*ratio),matDst.type());
+	matSdst=Mat(Size(matSrc.cols*ratiox,matSrc.rows*ratioy),matDst.type());
 //	cout<<"onput height*width"<<matDst.rows<<"*"<<matDst.cols<<endl;
 	x_ratio=(double)matSrc.cols/matSdst.cols;
 	y_ratio=(double)matSrc.rows/matSdst.rows;
@@ -140,12 +133,12 @@ void scale(double ratio,int algo)
 		waitKey(0);
 	}
 	else if(algo==1){
-		bilinear(x_ratio);
-		bicubic(x_ratio);
+		bilinear(x_ratio,y_ratio);
+		bicubic(x_ratio,y_ratio);
 }
          
 	else if(algo==2)		
-		bicubic(x_ratio);
+		bicubic(x_ratio,y_ratio);
 }
 
 
@@ -157,7 +150,7 @@ void rotate(double angle,int algo){
 	
 	angle=-angle*CV_PI/180;
 	
-	matSrc=imread("lena.jpg",1);
+	matSrc=imread("lena.txt",1);
 	matDst=Mat(matSrc.size(),matSrc.type());
 	imshow("input",matSrc);
 	waitKey(0);
@@ -185,11 +178,11 @@ void rotate(double angle,int algo){
                        	ix=cvRound(fx);
 			t=fx-ix;
 		  	max(ix,0);
-		//	min(ix,matSrc.cols);
+			min(ix,matSrc.cols);
                        	iy=cvRound(fy);
 			u=fy-iy;
 		  	max(iy,0);
-		//	min(iy,matSrc.rows);
+			min(iy,matSrc.rows);
 			for(int k=0;k<matSrc.channels();k++){
 			if(fx>=matDst.cols||fy>=matDst.rows||fx<=0||fy<=0)
 				matDst.at<Vec3b>(j,i)=Vec3b(0,0);
@@ -202,9 +195,7 @@ void rotate(double angle,int algo){
                           }
                	    }
 	    }
-	//imshow("bi rotate",matDst);
-	//waitKey(0);
-		}
+	}
 		
 }
 void traslation_shear(double x,double y,double shear,bool type,int algo){
@@ -296,7 +287,7 @@ int main(){
 	rotate(0);
 //	scale(10,1);*/
 	rotate(30,0);
-	scale(1.5,1);
+	scale(1.5,0.7,1);
 	traslation_shear(0,0,0.4,1,0);
 
 	return 0;	
