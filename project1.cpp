@@ -32,7 +32,7 @@ void bilinear(float ratiox,float ratioy){
 		iy=cvFloor(fy);
 		u=fy-iy;
 		max(iy,0);
-	        min(iy,matDst.rows-2);
+	        min(iy,matDst.rows);
                	for(int i=0;i<matSdst.cols;i++){
 			fx=(i+0.5)*ratiox-0.5;
                        	ix=cvFloor(fx);
@@ -47,8 +47,8 @@ void bilinear(float ratiox,float ratioy){
                         		  }
                 		    }
 			    }
-        imshow("bilinear",matSdst);
-	waitKey(0);
+        //imshow("bilinear",matSdst);
+	//waitKey(0);
 	  }
 
 void bicubic(float ratiox,float ratioy){
@@ -98,8 +98,8 @@ void bicubic(float ratiox,float ratioy){
 				}
 			}
 		}
-		imshow("bicubic",matSdst);
-		waitKey(0);
+	//	imshow("bicubic",matSdst);
+	//	waitKey(0);
 		}
 
 
@@ -109,17 +109,9 @@ void scale(double ratiox,double ratioy,int algo)
 	int srcx,srcy;
 	double sdx,sdy;
 	double x_ratio,y_ratio;
-//	cout<<matDst.cols<<endl;
-//	cout<<matDst.rows<<endl;
-//	matSrc=imread("lena.jpg",1);
-//	imshow("input",matSrc);
-//	waitKey(0);
-//	cout<<"input height*width"<<matSrc.rows<<"*"<<matSrc.cols<<endl;
 	matSdst=Mat(Size(matSrc.cols*ratiox,matSrc.rows*ratioy),matDst.type());
-//	cout<<"onput height*width"<<matDst.rows<<"*"<<matDst.cols<<endl;
 	x_ratio=(double)matSrc.cols/matSdst.cols;
 	y_ratio=(double)matSrc.rows/matSdst.rows;
-//	cout<<x_ratio<<"     "<<y_ratio;
 	if(algo==0){
 		for(int i=0;i<matSdst.cols;i++)
 			for(int j=0;j<matSdst.rows;j++)
@@ -129,12 +121,11 @@ void scale(double ratiox,double ratioy,int algo)
 					near(&sdx,&sdy);
 					matSdst.at<Vec3b>(j,i)=matDst.at<Vec3b>(sdy,sdx);
 				}
-		imshow("nearest neighbor scale",matSdst);
-		waitKey(0);
+	//	imshow("nearest neighbor scale",matSdst);
+	//	waitKey(0);
 	}
 	else if(algo==1){
 		bilinear(x_ratio,y_ratio);
-		bicubic(x_ratio,y_ratio);
 }
          
 	else if(algo==2)		
@@ -148,9 +139,9 @@ void rotate(double angle,int algo){
 	double fx,fy,u,t;
 	int ix,iy;
 	
-	angle=-angle*CV_PI/180;
-	
-	matSrc=imread("lena.txt",1);
+	angle=angle*CV_PI/180;
+	algo=0;
+	matSrc=imread("lena.jpg",1);
 	matDst=Mat(matSrc.size(),matSrc.type());
 	imshow("input",matSrc);
 	waitKey(0);
@@ -202,6 +193,7 @@ void traslation_shear(double x,double y,double shear,bool type,int algo){
 	double fx,fy,t,u;
 	int ix,iy;
 	double tx,ty;
+	algo=0;
 	matTdst=Mat(matSdst.size(),matSdst.type());
 	if(algo==0){
 		for(int i=0;i<matSdst.cols;i++)
@@ -231,7 +223,7 @@ void traslation_shear(double x,double y,double shear,bool type,int algo){
 				
 
 		}
-	imshow("Transform+shear",matTdst);
+	imshow("Result",matTdst);
 	waitKey(0);
 	}
 	if(algo==1){
@@ -270,25 +262,23 @@ void traslation_shear(double x,double y,double shear,bool type,int algo){
 
 
 int main(){
-	/*double scaler,angle,tranx,trany,shear,type;
-	cout<<"enter the scaling ratio:"<<endl;
-	cin>>scaler;
+	int algo;
+	double scaler,angle,tranx,trany,shear,type,x,y;
+	cout<<"enter the interpolation you want (0:nearest,1:bilinear,2:bicubic)";
+	cin>>algo;
+	cout<<"enter the scaling ratio x and y:"<<endl;
+	cin>>x>>y;
 	cout<<"enter rotation angle"<<endl;
 	cin>>angle;
 	cout<<"enter translation x and y"<<endl;
 	cin>>tranx>>trany;
-	cout<<"enter shear ratio (0~1)"<<endl;
-	cin>>shear;
 	cout<<"enter type of shear (0:vertical 1:horizontal)"<<endl;
 	cin>>type;
-	rotate(angle);
-	scale(scaler);
-	traslation_shear(tranx,trany,shear,type);
-	rotate(0);
-//	scale(10,1);*/
-	rotate(30,0);
-	scale(1.5,0.7,1);
-	traslation_shear(0,0,0.4,1,0);
+	cout<<"enter shear ratio (0~1)"<<endl;
+	cin>>shear;
+	rotate(angle,algo);
+	scale(x,y,algo);
+	traslation_shear(tranx,trany,shear,type,algo);
 
 	return 0;	
 
